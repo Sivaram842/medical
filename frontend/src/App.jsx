@@ -1,6 +1,5 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useDarkMode } from './lib/useDarkMode';
 import { useAuth } from './context/AuthContext';
 
 import Header from './components/Header';
@@ -14,7 +13,6 @@ import Account from './pages/Account';
 import Pharmacies from './pages/Pharmacies';
 
 const App = () => {
-  const [dark, setDark] = useDarkMode();
   const { loading } = useAuth();
   const { pathname } = useLocation();
 
@@ -23,8 +21,8 @@ const App = () => {
   const hideHeader = pathname === '/login' || pathname === '/signup';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {!hideHeader && <Header dark={dark} setDark={setDark} />}
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+      {!hideHeader && <Header />}
       <Routes>
         <Route path="/" element={<Search />} />
         <Route path="/login" element={<Login />} />
@@ -38,6 +36,7 @@ const App = () => {
           element={<PrivateRoute><Pharmacies /></PrivateRoute>}
         />
       </Routes>
+
     </div>
   );
 };

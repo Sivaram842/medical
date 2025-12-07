@@ -1,25 +1,34 @@
-import axios from "axios";
+const API_URL = 'http://localhost:4000';
 
-const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
-});
+export const axiosInstance = {
+    request: async (config) => {
+        const token = localStorage.getItem('token');
+        const headers = { ...config.headers };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-});
+        try {
+            const res = await fetch(`${API_URL}${config.url}`, {
+                method: config.method || 'GET',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: config.data ? JSON.stringify(config.data) : undefined,
+            });
 
-api.interceptors.response.use(
-    (res) => res,
-    (err) => {
-        if (err?.response?.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            // optionally redirect using location.assign to /login
+            if (res.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error?.message || 'Request failed');
+            return { data };
+        } catch (err) {
+            throw err;
         }
-        return Promise.reject(err);
-    }
-);
-
-export default api;
+    },
+    get: (url, config = {}) => axiosInstance.request({ ...config, url, method: 'GET' }),
+    post: (url, data, config = {}) => axiosInstance.request({ ...config, url, method: 'POST', data }),
+    patch: (url, data, config = {}) => axiosInstance.request({ ...config, url, method: 'PATCH', data }),
+    put: (url, data, config = {}) => axiosInstance.request({ ...config, url, method: 'PUT', data }),
+    delete: (url, config = {}) => axiosInstance.request({ ...config, url, method: 'DELETE' }),
+};
