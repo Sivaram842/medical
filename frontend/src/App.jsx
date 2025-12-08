@@ -11,30 +11,28 @@ import Signup from './pages/Signup';
 import Search from './pages/Search';
 import Account from './pages/Account';
 import Pharmacies from './pages/Pharmacies';
+import HomePage from './pages/HomePage';
+import Navbar from './components/Navbar';
+import PharmacyInventory from './pages/PharmacyInventory';
 
 const App = () => {
   const { loading } = useAuth();
-  const { pathname } = useLocation();
 
   if (loading) return <Spinner />;
 
-  const hideHeader = pathname === '/login' || pathname === '/signup';
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-      {!hideHeader && <Header />}
+    <div className="min-h-screen bg-[#0b0e15] text-gray-100">
+      <Navbar />
       <Routes>
-        <Route path="/" element={<Search />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/account"
-          element={<PrivateRoute><Account /></PrivateRoute>}
-        />
-        <Route
-          path="/pharmacies"
-          element={<PrivateRoute><Pharmacies /></PrivateRoute>}
-        />
+        <Route path="/account" element={<PrivateRoute><Account /></PrivateRoute>} />
+        <Route path="/pharmacies" element={<PrivateRoute><Pharmacies /></PrivateRoute>} />
+        <Route path="/pharmacies/:id" element={<PharmacyInventory />} />
+
       </Routes>
 
     </div>

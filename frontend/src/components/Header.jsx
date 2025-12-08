@@ -1,3 +1,5 @@
+//currently not using
+
 import React, { useState } from 'react';
 import { Moon, Sun, ChevronDown, LogOut, User, Store, Pill } from 'lucide-react';
 import { Link } from 'react-router-dom';

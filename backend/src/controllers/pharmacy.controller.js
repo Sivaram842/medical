@@ -53,3 +53,23 @@ export async function deletePharmacy(req, res, next) {
         res.status(204).send();
     } catch (e) { next(e); }
 }
+
+// GET /api/pharmacies/:pharmacyId
+export async function getPharmacyById(req, res, next) {
+    try {
+        const { pharmacyId } = req.params;
+
+        // If this endpoint should be public to any logged-in user:
+        const doc = await Pharmacy.findById(pharmacyId);
+
+        // If it should be owner-only, use this instead:
+        // const doc = await Pharmacy.findOne({ _id: pharmacyId, owner: req.user._id });
+
+        if (!doc) {
+            const e = new Error("Pharmacy not found");
+            e.status = 404;
+            throw e;
+        }
+        res.json({ pharmacy: doc });
+    } catch (e) { next(e); }
+}

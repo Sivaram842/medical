@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 
 const Pharmacies = () => {
     const { showToast, ToastContainer } = useToast();
-    const [pharmacies, setPharmacies] = useState([]);
+    const [pharmacies, setPharmacies] = useState([]); // always try to keep this an array
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState({
@@ -21,9 +21,20 @@ const Pharmacies = () => {
     const fetchPharmacies = async () => {
         try {
             const res = await axiosInstance.get('/api/pharmacies/mine');
-            setPharmacies(res.data);
+            console.log('API RESPONSE:', res.data);
+
+            const payload = res.data ?? [];
+            const list = Array.isArray(payload)
+                ? payload
+                : payload?.pharmacies   // { pharmacies: [...] }
+                ?? payload?.items      // { items: [...] }
+                ?? payload?.data       // { data: [...] }
+                ?? [];                 // fallback
+
+            setPharmacies(list);
         } catch (err) {
             showToast(err.message, 'error');
+            setPharmacies([]); // keep state consistent
         } finally {
             setLoading(false);
         }
@@ -36,8 +47,8 @@ const Pharmacies = () => {
             await axiosInstance.post('/api/pharmacies', {
                 name: form.name,
                 phone: form.phone,
-                lat: parseFloat(form.lat),
-                lng: parseFloat(form.lng),
+                lat: form.lat ? parseFloat(form.lat) : undefined,
+                lng: form.lng ? parseFloat(form.lng) : undefined,
                 address: {
                     line1: form.line1,
                     city: form.city,
@@ -47,38 +58,47 @@ const Pharmacies = () => {
             });
             showToast('Pharmacy created!');
             setShowModal(false);
+            setLoading(true);
             fetchPharmacies();
         } catch (err) {
             showToast(err.message, 'error');
         }
     };
 
+    const isEmpty = !loading && Array.isArray(pharmacies) && pharmacies.length === 0;
+
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12">
+        <div className="min-h-screen bg-black-50 py-12">
             <ToastContainer />
             <div className="max-w-6xl mx-auto px-4">
                 <div className="flex items-center justify-between mb-8">
-                    <h1 className="text-3xl font-bold dark:text-white">My Pharmacies</h1>
-                    <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700">
+                    <h1 className="text-3xl font-bold">My Pharmacies</h1>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
+                    >
                         <Plus className="w-5 h-5" /> Create Pharmacy
                     </button>
                 </div>
 
                 {loading && <Spinner />}
 
-                {!loading && pharmacies.length === 0 && (
+                {isEmpty && (
                     <div className="text-center py-20">
-                        <Store className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                        <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">No pharmacies yet</p>
-                        <button onClick={() => setShowModal(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700">
+                        <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 text-lg mb-4">No pharmacies yet</p>
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
+                        >
                             Create Your First Pharmacy
                         </button>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {pharmacies.map(p => (
-                        <Link key={p._id} to={`/pharmacies/${p._id}`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[linear-gradient(180deg,#FFFFFF,#0F52BA)] w-11/12 md:w-4/5 mx-auto rounded-xl shadow-lg">
+                    {(Array.isArray(pharmacies) ? pharmacies : []).map((p) => (
+                        <Link key={p._id || p.id} to={`/pharmacies/${p._id || p.id}`}>
                             <CardPharmacy pharmacy={p} />
                         </Link>
                     ))}

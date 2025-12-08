@@ -16,13 +16,13 @@ app.use(express.json());
 app.get("/health", (_, res) => res.json({ ok: true })); // quick check
 app.use("/api/auth", authRoutes);                       // routes
 
-app.use(errorHandler);                                  // last
 
 
 app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/inventory", inventoryRoutes);
-app.use("/api/search", searchRoutes);
+app.use("/api/v1/medicines", searchRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/medicines", medicineRoutes);
+app.use(errorHandler);                                  // last
 
 export default app;

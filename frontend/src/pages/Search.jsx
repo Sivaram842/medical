@@ -24,7 +24,7 @@ const Search = () => {
                 params.append('lat', location.lat);
                 params.append('lng', location.lng);
             }
-            const res = await axiosInstance.get(`/api/search?${params}`);
+            const res = await axiosInstance.get(`/api/v1/medicines/search?${params.toString()}`);
             setResults(res.data);
         } catch (err) {
             showToast(err.message, 'error');
