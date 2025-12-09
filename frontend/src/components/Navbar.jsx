@@ -35,7 +35,7 @@ const Navbar = () => {
                                 <Link >Services ▾</Link>
                                 {/* simple hover menu */}
                                 <div className="invisible absolute left-0 top-full w-44 rounded-xl border border-white/10 bg-[#0c0f17] p-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100">
-                                    <a href="/seo" className="block rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-white/5">SEO</a>
+                                    <a href="/nearby-hospitals" className="block rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-white/5">Find Nearby Hospitals</a>
                                     <a className="block rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-white/5">SMM</a>
                                     <a className="block rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-white/5">Content</a>
                                 </div>

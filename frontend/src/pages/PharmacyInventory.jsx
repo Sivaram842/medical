@@ -1,3 +1,4 @@
+// pages/PharmacyInventory.jsx (only the changed parts)
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import PharmacyHeader from "../components/PharmacyHeader";
@@ -8,7 +9,7 @@ import { useToast } from "../components/Toast";
 import { axiosInstance } from "../lib/axios";
 
 const PharmacyInventory = () => {
-    const { id } = useParams(); // /pharmacies/:id
+    const { id } = useParams();
     const { showToast, ToastContainer } = useToast();
 
     const [loading, setLoading] = useState(true);
@@ -16,69 +17,69 @@ const PharmacyInventory = () => {
     const [pharmacy, setPharmacy] = useState(null);
     const [items, setItems] = useState([]);
 
-    // ---- endpoints (adjust if your API shape is different)
     const PHARMACY_URL = `/api/pharmacies/${id}`;
-    const INVENTORY_LIST_URL = `/api/inventory/${id}`;                         // GET
-    const INVENTORY_UPSERT_URL = `/api/inventory/${id}`;                         // PUT
-    const INVENTORY_DELETE_URL = (itemId) => `/api/inventory/${id}/${itemId}`;   // DELETE
+    const INVENTORY_URL = `/api/inventory/${id}`;
+    const INVENTORY_DELETE_URL = (invId) => `/api/inventory/${id}/${invId}`;
 
     const load = async () => {
         try {
             const [pRes, iRes] = await Promise.all([
                 axiosInstance.get(PHARMACY_URL),
-                axiosInstance.get(INVENTORY_LIST_URL),
+                axiosInstance.get(INVENTORY_URL),
             ]);
 
-            // normalize shapes
-            const p = pRes.data?.pharmacy ?? pRes.data ?? null;
-            const list =
-                (Array.isArray(iRes.data) ? iRes.data
-                    : iRes.data?.items ?? iRes.data?.data ?? iRes.data?.inventory ?? []) || [];
-
-            setPharmacy(p);
-            setItems(list);
+            setPharmacy(pRes.data?.pharmacy ?? null);
+            setItems(iRes.data?.items || []);
         } catch (err) {
-            showToast(err.message, "error");
+            showToast(err.response?.data?.message || err.message, "error");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
+    useEffect(() => { load(); }, [id]);
 
+    // 🟦 Two-step: create medicine → upsert inventory
     const addMedicine = async (payload) => {
         try {
             setSaving(true);
-            await axiosInstance.post(INVENTORY_CREATE_URL, {
-                pharmacyId: id,
-                ...payload,
+
+            // 1) Create medicine master
+            const medRes = await axiosInstance.post("/api/medicines", {
+                name: payload.name,
+                brand: payload.brand,
+                form: payload.form,
+                strength: payload.strength,
+                genericName: payload.genericName,
             });
-            showToast("Medicine added!");
+            const medicineId = medRes.data?.medicine?._id;
+            if (!medicineId) throw new Error("Failed to create medicine");
+
+            // 2) Upsert inventory for this pharmacy
+            await axiosInstance.put(INVENTORY_URL, {
+                medicineId,
+                price: Number(payload.price),
+                stock: Number(payload.stock),
+            });
+
+            showToast("Medicine added to inventory!", "success");
             await load();
         } catch (err) {
-            showToast(err.message, "error");
+            console.error("UPsert error:", err.response?.status, err.response?.data);
+            showToast(err.response?.data?.message || err.message, "error");
         } finally {
             setSaving(false);
         }
     };
 
-    const editItem = (item) => {
-        // open modal or route to edit; left as TODO
-        showToast(`Edit ${item.name} (implement modal)`);
-    };
-
     const deleteItem = async (item) => {
-        if (!confirm(`Delete ${item.name}?`)) return;
+        if (!confirm(`Delete ${item?.medicine?.name || item.name}?`)) return;
         try {
-            // adjust endpoint as per your API
-            await axiosInstance.delete(`/api/inventory/${item._id || item.id}`);
-            showToast("Deleted");
+            await axiosInstance.delete(INVENTORY_DELETE_URL(item._id || item.id));
+            showToast("Deleted", "success");
             await load();
         } catch (err) {
-            showToast(err.message, "error");
+            showToast(err.response?.data?.message || err.message, "error");
         }
     };
 
@@ -89,35 +90,34 @@ const PharmacyInventory = () => {
             <ToastContainer />
 
             <div className="mx-auto max-w-7xl px-4 py-8">
-                {/* Header */}
                 <PharmacyHeader
                     name={pharmacy?.name ?? "Pharmacy"}
-                    manager={pharmacy?.manager?.name || pharmacy?.owner?.name}
+                    manager={pharmacy?.owner?.name}
                 />
 
-                {/* Content */}
                 <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-5">
-                    {/* Left: Add medicine (2 columns) */}
                     <div className="md:col-span-2">
                         <MedicineForm onSubmit={addMedicine} loading={saving} />
                     </div>
 
-                    {/* Right: Inventory (3 columns) */}
                     <div className="md:col-span-3">
-                        <div className="mb-4 flex items-center gap-2">
-                            <span className="text-xl font-bold text-gray-900">
-                                Medicine Inventory ({items.length})
-                            </span>
-                            <span className="text-sm text-gray-600">Manage your pharmacy's medicine stock</span>
-                        </div>
+                        <h2 className="text-xl font-bold mb-4">
+                            Inventory ({items.length})
+                        </h2>
 
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {items.map((it) => (
                                 <InventoryCard
-                                    key={it._id || it.id}
-                                    item={it}
-                                    onEdit={editItem}
-                                    onDelete={deleteItem}
+                                    key={it._id}
+                                    item={{
+                                        name: it?.medicine?.name || it.name,
+                                        description: `${it?.medicine?.brand || ""} ${it?.medicine?.strength || ""} ${it?.medicine?.form || ""}`.trim(),
+                                        price: it.price,
+                                        stock: it.stock,
+                                        _id: it._id,
+                                    }}
+                                    onEdit={() => { }}
+                                    onDelete={() => deleteItem(it)}
                                 />
                             ))}
                         </div>

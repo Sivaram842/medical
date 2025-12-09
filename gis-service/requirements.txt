@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+osmnx
+geopandas
+shapely
+rtree

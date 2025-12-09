@@ -1,3 +1,4 @@
+// components/MedicineForm.jsx
 import React, { useState } from "react";
 
 const Field = ({ label, children }) => (
@@ -14,56 +15,91 @@ const Input = (props) => (
     />
 );
 
-const Textarea = (props) => (
-    <textarea
+const Select = (props) => (
+    <select
         {...props}
-        rows={4}
-        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-y"
+        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
     />
 );
 
 const MedicineForm = ({ onSubmit, loading }) => {
     const [form, setForm] = useState({
         name: "",
-        description: "",
+        brand: "",
+        form: "other",
+        strength: "",
+        genericName: "",
         price: "",
         stock: "",
     });
 
-    const handle = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+    const handle = (key) => (e) =>
+        setForm((f) => ({ ...f, [key]: e.target.value }));
 
     const submit = (e) => {
         e.preventDefault();
         const payload = {
             name: form.name.trim(),
-            description: form.description.trim(),
-            price: parseFloat(form.price || "0"),
-            stock: parseInt(form.stock || "0", 10),
+            brand: form.brand.trim() || undefined,
+            form: form.form,
+            strength: form.strength.trim() || undefined,
+            genericName: form.genericName.trim() || undefined,
+            price: Number(form.price),
+            stock: Number(form.stock),
         };
         onSubmit?.(payload);
     };
 
     return (
-        <form onSubmit={submit} className="rounded-2xl bg-white border border-gray-200 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+        <form
+            onSubmit={submit}
+            className="rounded-2xl bg-white border border-gray-200 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)]"
+        >
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="text-indigo-600 text-2xl">+</span> Add New Medicine
+                <span className="text-indigo-600 text-2xl">+</span> Add Medicine
             </h2>
 
             <div className="mt-6 space-y-4">
-                <Field label="Medicine Name">
-                    <Input placeholder="Enter medicine name" value={form.name} onChange={handle("name")} required />
+                <Field label="Medicine Name *">
+                    <Input
+                        placeholder="e.g., Paracetamol"
+                        value={form.name}
+                        onChange={handle("name")}
+                        required
+                    />
                 </Field>
 
-                <Field label="Description">
-                    <Textarea placeholder="Enter description" value={form.description} onChange={handle("description")} />
-                </Field>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <Field label="Price ($)">
-                        <Input type="number" step="0.01" placeholder="0.00" value={form.price} onChange={handle("price")} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Field label="Brand">
+                        <Input placeholder="e.g., Calpol" value={form.brand} onChange={handle("brand")} />
                     </Field>
-                    <Field label="Stock">
-                        <Input type="number" placeholder="0" value={form.stock} onChange={handle("stock")} />
+                    <Field label="Generic Name">
+                        <Input placeholder="e.g., Acetaminophen" value={form.genericName} onChange={handle("genericName")} />
+                    </Field>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Field label="Form">
+                        <Select value={form.form} onChange={handle("form")}>
+                            <option value="tablet">Tablet</option>
+                            <option value="capsule">Capsule</option>
+                            <option value="syrup">Syrup</option>
+                            <option value="injection">Injection</option>
+                            <option value="other">Other</option>
+                        </Select>
+                    </Field>
+                    <Field label="Strength">
+                        <Input placeholder="e.g., 500mg" value={form.strength} onChange={handle("strength")} />
+                    </Field>
+                </div>
+
+                {/* Inventory fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Field label="Price (₹) *">
+                        <Input type="number" step="0.01" placeholder="0.00" value={form.price} onChange={handle("price")} required />
+                    </Field>
+                    <Field label="Stock *">
+                        <Input type="number" placeholder="0" value={form.stock} onChange={handle("stock")} required />
                     </Field>
                 </div>
 

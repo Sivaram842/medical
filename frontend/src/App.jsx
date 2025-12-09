@@ -14,6 +14,7 @@ import Pharmacies from './pages/Pharmacies';
 import HomePage from './pages/HomePage';
 import Navbar from './components/Navbar';
 import PharmacyInventory from './pages/PharmacyInventory';
+import NearbyHospitals from './pages/NearbyHospitals';
 
 const App = () => {
   const { loading } = useAuth();
@@ -32,7 +33,7 @@ const App = () => {
         <Route path="/account" element={<PrivateRoute><Account /></PrivateRoute>} />
         <Route path="/pharmacies" element={<PrivateRoute><Pharmacies /></PrivateRoute>} />
         <Route path="/pharmacies/:id" element={<PharmacyInventory />} />
-
+        <Route path="/nearby-hospitals" element={<NearbyHospitals />} />
       </Routes>
 
     </div>

@@ -7,6 +7,7 @@ import inventoryRoutes from "./routes/inventory.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import medicineRoutes from "./routes/medicine.routes.js";
+import gisRoutes from "./routes/gis.routes.js";
 
 
 const app = express();
@@ -23,6 +24,8 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/v1/medicines", searchRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/medicines", medicineRoutes);
+app.use("/api/gis", gisRoutes);
+
 app.use(errorHandler);                                  // last
 
 export default app;

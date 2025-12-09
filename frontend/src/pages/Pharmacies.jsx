@@ -21,7 +21,6 @@ const Pharmacies = () => {
     const fetchPharmacies = async () => {
         try {
             const res = await axiosInstance.get('/api/pharmacies/mine');
-            console.log('API RESPONSE:', res.data);
 
             const payload = res.data ?? [];
             const list = Array.isArray(payload)
